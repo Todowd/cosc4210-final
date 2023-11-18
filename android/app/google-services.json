@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "723886397065",
+    "firebase_url": "https://cosc4210final-default-rtdb.firebaseio.com",
+    "project_id": "cosc4210final",
+    "storage_bucket": "cosc4210final.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:723886397065:android:e580e83c8b88238d185858",
+        "android_client_info": {
+          "package_name": "com.example.cosc4210final"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7tPncXi_dLonpn-3240VrUSQaZGfcBh4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
