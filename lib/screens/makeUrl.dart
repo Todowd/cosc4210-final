@@ -1,4 +1,5 @@
 //firebase imports
+import 'package:cosc4210final/main.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,8 +13,9 @@ import '../library/library.dart';
 
 //page where urls are made
 class MakeUrl extends StatelessWidget {
+  final BuildContext c;
   //constructor
-  const MakeUrl({super.key});
+  const MakeUrl({super.key, required this.c});
 
   //product the widget
   Widget build(BuildContext context) {
@@ -21,7 +23,7 @@ class MakeUrl extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: "Make a shortened URL",
-      home: MakeUrlForm()
+      home: MakeUrlForm(c: c)
     );
   }
   
@@ -31,11 +33,14 @@ class MakeUrlForm extends StatelessWidget {
   //text controllers to get text from input fields to use
   final TextEditingController longCtrlr=TextEditingController();
   final TextEditingController shortCtrlr=TextEditingController();
-  
+  final BuildContext c;
+
   //constructor
-  makeUrlForm() {}
+  MakeUrlForm({super.key, required this.c}) {
+  }
 
   void add() async {
+//print("add fn called");
     //TODO
     //get authentication
     String user="todowd@uwyo.edu";
@@ -52,6 +57,7 @@ class MakeUrlForm extends StatelessWidget {
 //print("${doc.id} => ${doc.data()}");
         if(docData["short"]==shortCtrlr.text) {
 //print("already exists");
+//print("exists");
           exists=true;
           break;
         }
@@ -59,12 +65,12 @@ class MakeUrlForm extends StatelessWidget {
     });
     if(exists) {
 //print("escaped loop");
+      Library.message(c, "Already exists!");
       return;
     }
     if(!Library.isUrl(long)) {
 //print("Bad url!");
-      //TODO
-      //Give warning and make them redo
+      Library.message(c, "Bad URL!");
       return;
     }
     final data=<String, dynamic>{
@@ -76,40 +82,46 @@ class MakeUrlForm extends StatelessWidget {
       //probably go to the main menu portion here
 //print('DocumentSnapshot added with ID: ${doc.id}')
     });
-    
-  }
-
-  void goBack() {
-
+      shortCtrlr.text="";
+      longCtrlr.text="";
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+/*      appBar: AppBar(
+        title: const Text("Make a new shortened URL"),
+      ),*/
       appBar: AppBar(
-        title: Text(widget.title),
+        title: const Text("goto a URL"),
+        leading: IconButton(
+          onPressed: (){
+            Navigator.push(context, MaterialPageRoute(builder: (context)=>const MyApp()));
+          },
+          icon: const Icon(Icons.arrow_back)
+        )
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text("Add a URL", style: TextStyle(fontSize: 20)),
-          //Long URL to shorten
-          SizedBox(
-            width: 300,
-            child: TextField(
-              controller: longCtrlr,
-              decoration: InputDecoration(labelText: 'URL to shorten'),
-            )
-          ),
+          const Text("Add a URL", style: TextStyle(fontSize: 20)),
           //shortened text input
           SizedBox(
             width: 300,
             child: TextField(
                 controller: shortCtrlr,
-                decoration: InputDecoration(labelText: 'Shortened text'),
+                decoration: const InputDecoration(labelText: 'Shortened text'),
               )
           ),
-          SizedBox(height: 15),
+          //Long URL to shorten
+          SizedBox(
+            width: 300,
+            child: TextField(
+              controller: longCtrlr,
+              decoration: const InputDecoration(labelText: 'URL to shorten'),
+            )
+          ),
+          const SizedBox(height: 15),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             //TODO
@@ -118,19 +130,24 @@ class MakeUrlForm extends StatelessWidget {
               //submit button
               ElevatedButton(
                 onPressed: add,
-                child: Text('Add')
+                child: const Text('Add')
               ),
-              SizedBox(width: 15),
+              const SizedBox(width: 15),
               //Text(" "),
               //back button
               ElevatedButton(
-                onPressed: goBack,
-                child: Text('Cancel')
+                onPressed: () {
+                  //Navigator.pop(c);
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (builder)=>const MyHomePage(title: "URL Shortener")
+                  ));
+                },
+                child: const Text('Home')
               )
             ]
           )
-        ],
-      ),
+        ]
+      )
     );
   }
 }

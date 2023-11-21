@@ -1,4 +1,5 @@
 //firebase imports
+import 'package:cosc4210final/main.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,15 +13,22 @@ import '../library/library.dart';
 
 //page where urls are updated
 class UpdateUrl extends StatelessWidget {
+  String owner="";
+  String short="";
+  String long="";
+  String itmId="";
+  BuildContext c;
+
   //constructor
-  const UpdateUrl({super.key}, String owner, String short, String long);
+  UpdateUrl({super.key, required this.c, required this.owner, required this.itmId, required this.short, required this.long});
 
   //product the widget
   Widget build(BuildContext context) {
     //needed directionality
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: "Update a shortened URL",
-      home: UpdateUrlForm(ownr: owner, shrt: short, lng: long)
+      home: UpdateUrlForm(c: c, itmId: itmId, user: owner, short: short, long: long)
     );
   }
   
@@ -28,67 +36,89 @@ class UpdateUrl extends StatelessWidget {
 
 class UpdateUrlForm extends StatelessWidget {
   //text controllers to get text from input fields to use
-  final TextEditingController longCtrlr=TextEditingController();
-  final TextEditingController shortCtrlr=TextEditingController();
-  String owner;
-  String short;
-  String long;
+  TextEditingController longCtrlr=TextEditingController();
+  String user="";
+  String short="";
+  String long="";
+  String itmId="";
+  BuildContext c;
 
   //constructor
-  UpdateUrlForm(String ownr, String shrt, String lng) {
-    owner=ownr;
-    short=shrt;
-    long=lng;
+  UpdateUrlForm({required this.c, required this.itmId, required this.user, required this.short, required this.long}) {
     longCtrlr.text=long;
-    shortCtrlr.text=short;
   }
 
   void update() async {
     //TODO
     //get authentication
+    String currentUser="todowd@uwyo.edu";
     //access firebase DB
+//print("long: $long, user: $user, short: $short, itmId: $itmId");
     final db=FirebaseFirestore.instance;
-    var docToUpdate;
     //Update sure it doesnt exist already
-    bool exists=false;
+    //bool exists=false;
+    //bool notOwner=false; 
     final data=<String, dynamic>{
-      "long": long,
+      "long": longCtrlr.text,
       "owner": user,
       "short": short
     };
-    await db.collection("urls").get().then((event) {
-      for (var doc in event.docs) {
-        final docData=doc.data() as Map<String, dynamic>;
-//print("${doc.id} => ${doc.data()}");
-        if(docData["short"]==shortCtrlr.text) {
-//print("already exists");
-          exists=true;
-          doc.update(data).then((val)=>{
-            //TODO
-            //updated go back to main menu
-          });
-          break;
+    //make query
+    await db.collection("urls").doc(itmId).get().then((event) {
+      //go through all findings
+      //for (var doc in event.docs) {
+        //make tmp var to hold data
+        var docData;
+//print("id: $itmId");
+        try {
+          docData=event.data() as Map<String, dynamic>;
+//print(docData);
         }
-      }
+        catch(e) {
+          Library.message(c, "Doesnt exist!");
+print("not the existant!");
+          return;
+        }
+        //have the right one
+        //if(docData["short"]==short) {
+          if(docData["owner"]!=currentUser) {
+print("not the owner!");
+            Library.message(c, "Not the owner!");
+            return;
+            //break;
+          }
+          if(!Library.isUrl(long)) {
+print("not valid!");
+            Library.message(c, "Not a valid URL!");
+            return;
+          }
+print(itmId);
+docData["long"]=long;
+          //exists=true;
+          //update the document
+          db.collection("urls").doc(itmId).update(data
+            /*{
+              long: long,
+              short: docData["short"],
+              owner: docData["owner"]
+            }*/
+          ).then((value) => print);
+print("updated!");
+          Navigator.pop(c);
+          //break;
+        //}
+      //}
     });
+    /*
     if(!exists) {
 //print("escaped loop");
-      //TODO
-      //goto main menu page
+      goto main menu page
+      Navigator.push(c, MaterialPageRoute(
+        builder: (builder)=>const MyHomePage(title: "URL Shortener")
+      ));
       return;
     }
-    if(!Library.isUrl(long)) {
-//print("Bad url!");
-      //TODO
-      //make user retry
-      //give warning
-      return;
-    }
-    db.collection("urls").set(data, SetOptions(merge: true)).then((DocumentReference doc) => {
-      //probably go to the main menu portion here
-//print('DocumentSnapshot added with ID: ${doc.id}')
-    });
-    
+    */
   }
 
   @override
@@ -102,37 +132,36 @@ class UpdateUrlForm extends StatelessWidget {
             width: 300,
             child: TextField(
               controller: longCtrlr,
-              decoration: InputDecoration(labelText: 'URL to shorten'),
+              decoration: const InputDecoration(labelText: 'URL to shorten'),
             )
           ),
           //shortened text input
           SizedBox(
             width: 300,
-            child: TextField(
-                controller: shortCtrlr,
-                decoration: InputDecoration(labelText: 'Shortened text'),
-              )
+            child: Text('Modify: $short')
           ),
-          SizedBox(height: 15),
+          const SizedBox(height: 15),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               //submit button
               ElevatedButton(
                 onPressed: update,
-                child: Text('Update')
+                child: const Text('Update')
               ),
-              SizedBox(width: 15),
-              //Text(" "),
+              const SizedBox(width: 15),
               //back button
               ElevatedButton(
-                onPressed: goBack,
-                child: Text('Cancel')
+                onPressed: () {
+                  //Navigator.pop(c);
+                  Navigator.pop(c);
+                },
+                child: const Text('Cancel')
               )
             ]
           )
-        ],
-      ),
+        ]
+      )
     );
   }
 }

@@ -1,4 +1,7 @@
 //firebase imports
+import 'package:cosc4210final/screens/example.dart';
+import 'package:cosc4210final/screens/goto.dart';
+import 'package:cosc4210final/screens/urlList.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -27,26 +30,17 @@ void main() async {
     }
   });
   */
-  runApp(const MakeUrl());
+  runApp(const MyApp());
 }
-
-
-//TODO
-//Make this a stateful widget of which one of the "pages" is running
-//then have a hamburger menu with options to the urls, makeurl, goto, and logout
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
@@ -60,40 +54,67 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Colors.blue,
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
+      drawer: Drawer(
+        child: Container(
+          padding: const EdgeInsets.only(top: 10, bottom: 10),
+          child: ListView (
+            children: <Widget>[
+              const Text("URL Shortener"),
+              const Divider(
+                color: Colors.blue
+              ),
+              ListTile(
+                title: const Text("Main Menu"),
+                leading: const Icon(Icons.home, color: Colors.black),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=>MyApp()));
+                }
+              ),
+              ListTile(
+                title: const Text('Make new short URL'),
+                leading: const Icon(Icons.control_point_rounded, color: Colors.black),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (context)=>MakeUrl(c: context))
+                  );
+                }
+              ),
+              ListTile(
+                title: const Text('Goto URL'),
+                leading: const Icon(Icons.open_in_new, color: Colors.black),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=>GotoUrl()));
+                }
+              ),
+              ListTile(
+                title: const Text('State Example'),
+                leading: const Icon(Icons.help, color: Colors.black),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (context)=>const Example()
+                  ));
+                }
+              ),
+              const Divider(
+                color: Colors.blue
+              ),
+              ListTile(
+                title: const Text('Logout'),
+                leading: const Icon(Icons.logout, color: Colors.black),
+
+              )
+            ]
+          )
+        )
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      body: UrlList(c: context)
     );
   }
 }

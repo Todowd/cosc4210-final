@@ -11,6 +11,7 @@ await db.collection("users").get().then((event) {
  */
 
  //firebase imports
+import 'package:cosc4210final/main.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -18,15 +19,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 //flutter visual design imports
 import 'package:flutter/material.dart';
-
-//flutter html import, for url redirection
-import 'dart:html' as html;
-
-void openInWindow(String uri, String name) {
-  html.window.open(uri, name);
-}
-print('heading over to... $uri');
-openInWindow(uri.toString(), '_self');
 
 //using my library of stuff
 import '../library/library.dart';
@@ -42,7 +34,7 @@ class GotoUrl extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: "GoTo a shortened URL",
-      home: GotoUrlForm()
+      home: GotoUrlForm(context)
     );
   }
   
@@ -50,17 +42,20 @@ class GotoUrl extends StatelessWidget {
 
 class GotoUrlForm extends StatelessWidget {
   //text controllers to get text from input field to use
-  final TextEditingController shortCtrlr=TextEditingController();
+  final TextEditingController urlCtrlr=TextEditingController();
+  BuildContext? c;
   
   //constructor
-  GotoUrlForm() {}
+  GotoUrlForm(BuildContext context) {
+    c=context;
+  }
 
-  void add() async {
+  void goto() async { //I made a goto
     //TODO
     //get authentication
-    String user="todowd@uwyo.edu";
+    //String user="todowd@uwyo.edu";
     //get the user given text
-    String short=shortCtrlr.text;
+    //String short=urlCtrlr.text;
     //access firebase DB
     final db=FirebaseFirestore.instance;
     //make sure it doesnt exist already
@@ -68,66 +63,46 @@ class GotoUrlForm extends StatelessWidget {
     await db.collection("urls").get().then((event) {
       for (var doc in event.docs) {
         final docData=doc.data() as Map<String, dynamic>;
-        if(docData["short"]==shortCtrlr.text) {
+//var tmp=docData["short"];
+//print("short: $tmp");
+        if(docData["short"]==urlCtrlr.text) {
           exists=true;
           //Redirect to that page
+          Library.openInWindow(docData["long"]);
           break;
         }
       }
     });
-    if(exists) {
-//print("escaped loop");
-      return;
+    if(!exists) {
+      Library.message(c!, "URL not found!");
     }
-    if(!Library.isUrl(long)) {
-//print("Bad url!");
-      //TODO
-      //Give warning and make them redo
-      return;
-    }
-    final data=<String, dynamic>{
-      "long": long,
-      "owner": user,
-      "short": short
-    };
-    db.collection("urls").add(data).then((DocumentReference doc) => {
-      //probably go to the main menu portion here
-//print('DocumentSnapshot added with ID: ${doc.id}')
-    });
-    
-  }
-
-  void goBack() {
-
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: const Text("goto a URL"),
+        leading: IconButton(
+          onPressed: (){
+            Navigator.push(context, MaterialPageRoute(builder: (context)=>const MyApp()));
+          },
+          icon: const Icon(Icons.arrow_back)
+        )
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text("Add a URL", style: TextStyle(fontSize: 20)),
-          //Long URL to shorten
-          SizedBox(
-            width: 300,
-            child: TextField(
-              controller: longCtrlr,
-              decoration: InputDecoration(labelText: 'URL to shorten'),
-            )
-          ),
+          const Text("goto a URL", style: TextStyle(fontSize: 20)),
           //shortened text input
           SizedBox(
             width: 300,
             child: TextField(
-                controller: shortCtrlr,
-                decoration: InputDecoration(labelText: 'Shortened text'),
+                controller: urlCtrlr,
+                decoration: const InputDecoration(labelText: 'Shortened text'),
               )
           ),
-          SizedBox(height: 15),
+          const SizedBox(height: 15),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             //TODO
@@ -135,15 +110,18 @@ class GotoUrlForm extends StatelessWidget {
             children: [
               //submit button
               ElevatedButton(
-                onPressed: add,
-                child: Text('Add')
+                onPressed: goto,
+                child: const Text('goto')
               ),
-              SizedBox(width: 15),
-              //Text(" "),
+              const SizedBox(width: 15),
               //back button
               ElevatedButton(
-                onPressed: goBack,
-                child: Text('Cancel')
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (builder)=>const MyHomePage(title: "URL Shortener")
+                  ));
+                },
+                child: const Text('Cancel')
               )
             ]
           )
